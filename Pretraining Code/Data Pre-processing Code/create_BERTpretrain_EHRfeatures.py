@@ -24,37 +24,26 @@ import random
 #import tokenization
 import tensorflow as tf
 import pickle
+import logging
 
-flags = tf.flags
-
+flags = tf.compat.v1.flags
 FLAGS = flags.FLAGS
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-## this the visits file
 flags.DEFINE_string("input_file", None, "Input training data.")
-
-## that will be the final model input file
-flags.DEFINE_string( "output_file", None, "Output TF example file (or comma-separated list of files).")
-
-
+flags.DEFINE_string("output_file", None, "Output TF example file (or comma-separated list of files).")
 flags.DEFINE_integer("max_seq_length", 32, "Maximum sequence length.")
-
 flags.DEFINE_integer("max_predictions_per_seq", 2, "Maximum number of masked LM predictions per sequence.")
-
 flags.DEFINE_float("masked_lm_prob", 0.35, "Masked LM probability.")
-
-#### this is the types file
 flags.DEFINE_string("vocab_file", None, "The vocabulary file / types file that the BERT model was trained on.")
-
 flags.DEFINE_integer("random_seed", 12345, "Random seed for data generation.")
-
-#flags.DEFINE_float("short_seq_prob", 0.7,"Probability of creating sequences which are shorter than the maximum length.") ## commented as not  used
 
 
 def write_EHRinstance_to_example_files(seqs,max_seq_length, max_predictions_per_seq,masked_lm_prob,vocab, output_files,rng):
   """Create TF example files from `TrainingInstance`s."""
   writers = []
   for output_file in output_files:
-    writers.append(tf.python_io.TFRecordWriter(output_file))
+    writers.append(tf.io.TFRecordWriter(output_file))
 
   writer_index = 0
   total_written = 0
@@ -122,8 +111,8 @@ def write_EHRinstance_to_example_files(seqs,max_seq_length, max_predictions_per_
     total_written += 1
 
     if seq_index < 20:
-      tf.logging.info("*** Example ***")
-      tf.logging.info("tokens: " , seq)
+      logging.info("*** Example ***")
+      logging.info("tokens: %s", seq)
 
       for feature_name in features.keys():
         feature = features[feature_name]
@@ -132,14 +121,14 @@ def write_EHRinstance_to_example_files(seqs,max_seq_length, max_predictions_per_
           values = feature.int64_list.value
         elif feature.float_list.value:
           values = feature.float_list.value
-        tf.logging.info(
+        logging.info(
             "%s: %s" % (feature_name, " ".join([str(x) for x in values])))
       #print (features)
 
   for writer in writers:
     writer.close()
 
-  tf.logging.info("Wrote %d total instances", total_written)
+  logging.info("Wrote %d total instances", total_written)
 
 
 
@@ -227,9 +216,9 @@ def main(_):
   rng = random.Random(FLAGS.random_seed)
 
   output_files = FLAGS.output_file.split(",")
-  tf.logging.info("*** Writing to output files ***")
+  logging.info("*** Writing to output files ***")
   for output_file in output_files:
-    tf.logging.info("  %s", output_file)
+    logging.info("  %s", output_file)
 
 
   write_EHRinstance_to_example_files(train_data,FLAGS.max_seq_length, FLAGS.max_predictions_per_seq,FLAGS.masked_lm_prob,vocab,output_files,rng)
@@ -238,4 +227,4 @@ if __name__ == "__main__":
   flags.mark_flag_as_required("input_file")
   flags.mark_flag_as_required("output_file")
   flags.mark_flag_as_required("vocab_file")
-  tf.app.run()
+  tf.compat.v1.app.run()

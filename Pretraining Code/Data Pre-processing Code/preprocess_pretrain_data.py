@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
   #### Data Loading
   print (" data file" )   
-  data_diag= pd.read_csv(diagFile, sep='\t')   
+  data_diag= pd.read_csv(diagFile)   
   data_diag.columns=['patient_sk','admit_dt_tm','discharge_dt_tm', 'diagnosis', 'poa', 'diagnosis_priority','third_party_ind']
 
   if typeFile=='NA': 
